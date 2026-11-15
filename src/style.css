@@ -1,0 +1,21 @@
+@font-face { font-family: "Lexend"; font-weight: 100 900; font-display: block; src: url("./fonts/lexend.woff2") format("woff2"); }
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #05081c; overflow: hidden; font-family: "Lexend", system-ui, sans-serif; color: #eef1ff; }
+#game { position: fixed; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+#game canvas { display: block; outline: none; }
+#rotate { display: none; position: fixed; inset: 0; z-index: 5; background: #05081c; align-items: center; justify-content: center; text-align: center; font-size: 1.3rem; padding: 2rem; }
+@media (orientation: portrait) and (max-width: 700px) { #rotate { display: flex; } }
+#overlay { position: fixed; inset: 0; z-index: 10; background: rgba(3, 5, 16, .82); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#overlay[hidden] { display: none; }
+.sheet { width: min(760px, 100%); max-height: 100%; overflow: auto; background: #0e1432; border: 1px solid rgba(255,255,255,.14); border-radius: 22px; padding: 22px 26px 26px; line-height: 1.5; font-size: .95rem; }
+.sheet h2 { margin: 0 0 .2em; font-size: 1.5rem; } .sheet h2 small { font-weight: 400; color: #a9b3dc; font-size: .8rem; margin-left: .5em; }
+.sheet h3 { margin: 1.3em 0 .3em; font-size: 1rem; color: #ffc861; } .sheet h4 { margin: 0 0 .2em; font-size: 1rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sheet a { color: #ffd98a; } .sheet ul { padding-left: 1.2em; margin: .3em 0; } .sheet li { margin: .35em 0; }
+.fine { font-size: .82rem; color: #b4bde0; } .sheet p { margin: .35em 0; }
+.pf { background: rgba(255,255,255,.06); border-radius: 16px; padding: 10px 16px; margin: 10px 0; }
+.tag { font-size: .62rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; background: #4a5a9a; color: #fff; }
+.tag.REAL { background: #19884f; } .tag.MADE { background: #8a5a1a; }
+.src { font-size: .62rem; font-weight: 700; border-radius: 999px; padding: 1px 7px; background: #4a5a9a; color: #fff; } .src.live { background: #19884f; }
+.close { margin-top: 1.2em; background: #ffb020; color: #1b1300; font: 700 1rem "Lexend", sans-serif; border: 0; border-radius: 999px; padding: 12px 28px; cursor: pointer; }
+.close:focus-visible, .sheet a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
