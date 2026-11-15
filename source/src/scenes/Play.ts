@@ -32,7 +32,7 @@ const fmtDate = (d: string) => { const p = d.split('-'); return MONTHS[+p[1] - 1
 export class Play extends Phaser.Scene {
   S: any; level = 'normal'; nights: any[] = []; readings: any = {}; clues: any = {}; journal: any[] = []; seen: any = {};
   tool: string | null = null; tip: any = null; dig: any = null; alarm: any = null; cut = false; modalObjs: any[] = []; modalKind = '';
-  rv: any = {}; badges: any = {}; keeper: any; keeperAt = 'B'; hand: any; handShadow: any; handIcon: any; lastTap = 0; helpOn = false; helpNow = false; cap: any; capBg: any; capTxt: any; sun: any; sunGlow: any; sunRays: any;
+  rv: any = {}; badges: any = {}; keeper: any; keeperAt = 'B'; team: any = null; hand: any; handShadow: any; handIcon: any; lastTap = 0; helpOn = false; helpNow = false; cap: any; capBg: any; capTxt: any; sun: any; sunGlow: any; sunRays: any;
   hudG: any; hudDays: any[] = []; dockBtns: any = {}; jBadge: any; jBadgeT: any; toast: any; tipTimer: any; nightEv: any[] = []; nightObjs: any[] = [];
   crew: any = {}; sci: any = {}; sites: any[] = []; sensorObj: any = null; lastRes: any = null;
   dust: any; hot: any; alarmObjs: any[] = []; digObjs: any = null; pointer: any;
@@ -209,7 +209,7 @@ export class Play extends Phaser.Scene {
   }
   moveKeeper(id: string, quiet = false) { this.walk(this.keeper, RX[id] + 100, quiet); this.keeperAt = id; }
   worker(tool: string) { return this.crew[JOB[tool]] || this.keeper; }
-  moveWorker(tool: string, id: string) { const w = this.worker(tool); const tx = RX[id] + (w === this.keeper ? 100 : -95 + 0); this.walk(w, w === this.keeper ? tx : RX[id] - 95); }
+  moveWorker(tool: string, id: string) { if (tool === 'bag') return; const w = this.worker(tool); const tx = RX[id] + (w === this.keeper ? 100 : -95 + 0); this.walk(w, w === this.keeper ? tx : RX[id] - 95); }
 
   // ---------------------------------------------------------------- HUD + dock
   buildHud() {
@@ -512,12 +512,41 @@ export class Play extends Phaser.Scene {
   }
 
   // ---------------------------------------------------------------- digging
+  // Omar digs, Lily and Jun line up behind him and pass dirt. Everyone works together.
+  teamStart(id: string) {
+    if (this.team) this.teamHome();
+    const eng = this.crew.eng, helpers = [this.crew.sci, this.crew.pil], x0 = RX[id] + 118;
+    this.team = { eng, helpers, shovel: null as any };
+    this.walk(eng, x0); helpers.forEach((h: any, i: number) => this.walk(h, x0 - 62 * (i + 1)));
+    this.time.delayedCall(560, () => { [eng, ...helpers].forEach((a: any) => { a.g.scaleX = 1; }); });
+    const sh = icon(this, 'shovel', 34, -34, 44, 0xffffff); eng.add(sh); this.team.shovel = sh; sh.setAngle(-30);
+  }
+  teamSwing() {
+    const t = this.team; if (!t) return;
+    this.tweens.add({ targets: t.shovel, angle: 35, duration: 110, yoyo: true, ease: 'Quad.out' });
+    this.tweens.add({ targets: t.eng.g, x: 5, duration: 90, yoyo: true });
+    t.helpers.forEach((h: any, i: number) => this.time.delayedCall(90 + i * 70, () => { if (!this.team) return; this.tweens.add({ targets: h, y: BASE + 24, duration: 110, yoyo: true }); this.tweens.add({ targets: h.g, scaleY: 0.93, duration: 90, yoyo: true }); }));
+  }
+  teamPass(id: string) {
+    const t = this.team; if (!t) return;
+    t.helpers.forEach((h: any, i: number) => this.time.delayedCall(140 + i * 110, () => {
+      const from = { x: h.x + 14, y: BASE - 20 }, to = { x: RX[id] + (Math.random() * 90 - 45), y: BASE - DRY - STEP * NS.room(this.S, id).bags - 6 };
+      const b = this.add.image(from.x, from.y, 'dot').setTint(0xb8a88a).setScale(0.4).setDepth(40);
+      this.tweens.addCounter({ from: 0, to: 1, duration: 520, ease: 'Sine.inOut', onUpdate: (tw: any) => { const q = tw.getValue(); b.x = from.x + (to.x - from.x) * q; b.y = from.y + (to.y - from.y) * q - Math.sin(q * Math.PI) * (120 + i * 25); b.angle += 14; }, onComplete: () => { b.destroy(); this.dust.explode(4, to.x, to.y); } });
+    }));
+  }
+  teamCheer() { const t = this.team; if (!t) return; [t.eng, ...t.helpers].forEach((a: any, i: number) => this.tweens.add({ targets: a, y: BASE + 4, duration: 170, yoyo: true, repeat: 1, delay: i * 80 })); }
+  teamHome() {
+    const t = this.team; if (!t) return; this.team = null;
+    t.shovel.destroy();
+    [t.eng, ...t.helpers].forEach((a: any) => this.walk(a, a.home, true));
+  }
   startDig(id: string) {
-    this.dig = { room: id, n: 0 };
+    this.dig = { room: id, n: 0 }; this.teamStart(id);
     const c = this.add.container(RX[id] + 185, BASE + 36).setDepth(25), g = this.add.graphics();
     g.fillStyle(0x000000, 0.25).fillEllipse(0, 12, 130, 18); g.fillStyle(0x9c8a6e, 1).fillEllipse(0, 0, 116, 50).lineStyle(2, 0x6c604c, 0.9).strokeEllipse(0, 0, 116, 50);
     g.fillStyle(0xb8a88a, 1).fillEllipse(-8, -10, 84, 30); g.fillStyle(0xe9dfc6, 0.35).fillEllipse(-18, -18, 40, 8);
-    const sh = icon(this, 'shovel', 0, -42, 54, 0xffffff), pips = this.add.graphics().setPosition(0, -88);
+    const sh = icon(this, 'shovel', 0, -42, 54, 0xffffff).setVisible(false), pips = this.add.graphics().setPosition(0, -88);
     c.add([g, sh, pips]); c.setScale(0); this.tweens.add({ targets: c, scale: 1, duration: 300, ease: 'Back.out' });
     this.tweens.add({ targets: sh, y: -50, angle: 10, duration: 450, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     const hit = this.add.rectangle(RX[id] + 185, BASE + 10, 170, 120, 0xffffff, 0.001).setDepth(26).setInteractive({ useHandCursor: true });
@@ -525,18 +554,17 @@ export class Play extends Phaser.Scene {
     this.digObjs = { c, hit, pips, sh }; this.drawPips(); this.refresh();
   }
   drawPips() { const p = this.digObjs.pips; p.clear(); for (let i = 0; i < DIG_TAPS; i++) p.fillStyle(i < this.dig.n ? C.sun : 0xffffff, i < this.dig.n ? 1 : 0.3).fillCircle(-40 + i * 20, 0, 6); }
-  cancelDig() { if (this.digObjs) { this.digObjs.c.destroy(); this.digObjs.hit.destroy(); this.digObjs = null; } this.dig = null; }
+  cancelDig(keepTeam = false) { if (!keepTeam) this.teamHome(); if (this.digObjs) { this.digObjs.c.destroy(); this.digObjs.hit.destroy(); this.digObjs = null; } this.dig = null; }
   digTap() {
     const d = this.dig; if (!d || this.cut) return;
-    d.n++; SFX.scoop(); this.drawPips();
+    d.n++; SFX.scoop(); this.drawPips(); this.teamSwing(); this.teamPass(d.room);
     const id = d.room, from = { x: RX[id] + 185, y: BASE + 4 }, to = { x: RX[id] + (Math.random() * 60 - 30), y: BASE - DRY - STEP * NS.room(this.S, id).bags - 4 };
     const b = this.add.image(from.x, from.y, 'dot').setTint(0xb8a88a).setScale(0.5).setDepth(40);
     this.tweens.addCounter({ from: 0, to: 1, duration: 560, ease: 'Sine.inOut', onUpdate: (tw: any) => { const t = tw.getValue(); b.x = from.x + (to.x - from.x) * t; b.y = from.y + (to.y - from.y) * t - Math.sin(t * Math.PI) * 150; b.angle += 12; }, onComplete: () => { b.destroy(); this.dust.explode(6, to.x, to.y); } });
-    this.tweens.add({ targets: this.worker('bag').g, scaleY: 0.92, duration: 80, yoyo: true });
     if (d.n >= DIG_TAPS) {
       this.time.delayedCall(560, () => {
         if (this.dig !== d) return;
-        this.cancelDig();
+        this.teamCheer(); this.time.delayedCall(500, () => this.teamHome()); this.cancelDig(true);
         const r = NS.bag(this.S, id); if (!r.ok) return this.fail(r.code);
         delete this.readings[id]; this.hideBadge(id); this.drawRoom(id, true); SFX.dirt(); this.cameras.main.shake(180, 0.004); this.dust.explode(22, RX[id], BASE - DRY - STEP * r.bags);
         this.refresh();

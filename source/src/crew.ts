@@ -1,4 +1,4 @@
-// The crew, the jobs and the things the crew can discover. Facts here are checked against NASA pages (see the "For grown-ups" sheet).
+// The crew, the jobs and the things the crew can discover. Facts here are checked against NASA pages (see the "Mission Facts" sheet).
 
 export const CREW = [
   { id: 'sci', name: 'Lily', role: 'Scientist', ico: 'flask', col: 0xa6f0cf, jobs: ['beep', 'rock'] },
