@@ -21,9 +21,9 @@ export const CONFIG = {
   intro: {
     lines: [
       'Welcome, Mission Commander! It is your first day on the Moon.',
-      'This is your crew. You decide who does what.',
+      'Your mission: manage the crew. You decide who does what.',
       'The Sun sends space rays. Moon dirt on the roof blocks them.',
-      'Find out what the Moon is made of. Keep your crew safe.',
+      'Keep your crew safe. Find out what the Moon is made of.',
     ],
     next: 'Next', start: 'Start', skip: 'Skip',
   },

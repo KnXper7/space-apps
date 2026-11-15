@@ -8,7 +8,7 @@
   // Beeps = rays that get into a room, counted in a simple way (not measured doses). Index = Moon-dirt bags on the roof (0-4).
   var COSMIC = [4, 3, 3, 2, 2];     // always-there rays: dirt helps a little
   var STORM_MULT = [3, 2, 1, 0, 0]; // sun-storm rays: dirt helps a LOT
-  var MAX_DIRT = 4, DAYS = 7, POWER_PER_DAY = 3, POWER_CAP = 5, AIR_PER_NIGHT = 2, MAX_TRAYS = 2;
+  var MAX_DIRT = 4, DAYS = 7, POWER_PER_DAY = 3, POWER_CAP = 5, AIR_PER_NIGHT = 2, MAX_TRAYS = 6, TRAYS_PER_ROOM = 2;
 
   var LEVELS = {
     easy:   { label: 'Easy',   hearts: 6, air: 10, readings: 'always', hints: true },
@@ -73,7 +73,8 @@
       if (s.bagToday) return { ok: false, code: 'bagDay', why: 'The digger robot is charging. One bag a day!' };
       if (roomId && room(s, roomId).dirt >= MAX_DIRT) return { ok: false, code: 'roofFull', why: 'That roof is full.' };
     }
-    if (tool === 'plant' && liveTrays(s).length >= MAX_TRAYS) return { ok: false, code: 'trays', why: 'Both seed trays are in use.' };
+    if (tool === 'plant' && liveTrays(s).length >= MAX_TRAYS) return { ok: false, code: 'trays', why: 'All seed trays are in use.' };
+    if (tool === 'plant' && roomId && liveTrays(s).filter(function (t) { return t.room === roomId; }).length >= TRAYS_PER_ROOM) return { ok: false, code: 'roomTrays', why: 'That room already has two trays.' };
     return { ok: true };
   }
   function pay(s, tool) { s.power -= TOOLS[tool].power; s.air -= TOOLS[tool].air; s.toolsUsed++; }
@@ -156,7 +157,7 @@
   }
 
   return { COSMIC: COSMIC, STORM_MULT: STORM_MULT, MAX_DIRT: MAX_DIRT, DAYS: DAYS, POWER_CAP: POWER_CAP,
-           POWER_PER_DAY: POWER_PER_DAY, AIR_PER_NIGHT: AIR_PER_NIGHT, MAX_TRAYS: MAX_TRAYS,
+           POWER_PER_DAY: POWER_PER_DAY, AIR_PER_NIGHT: AIR_PER_NIGHT, MAX_TRAYS: MAX_TRAYS, TRAYS_PER_ROOM: TRAYS_PER_ROOM,
            LEVELS: LEVELS, TOOLS: TOOLS, classToSize: classToSize, nightLevel: nightLevel, face: face,
            newGame: newGame, room: room, flareTonight: flareTonight, liveTrays: liveTrays, canUse: canUse,
            beep: beep, lens: lens, lensReadings: lensReadings, bag: bag, plant: plant, sleep: sleep,

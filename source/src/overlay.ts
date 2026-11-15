@@ -50,13 +50,13 @@ export function openGrownups(tonight: any, level: string) {
 export function openHowTo(onHint: () => void) {
   const el = document.getElementById('overlay')!, body = document.getElementById('overlayBody')!;
   body.innerHTML = `<h2>How to play</h2>
-  <p><b>Goal:</b> keep your crew safe for ${NS.DAYS} nights, and find out what the Moon is made of.</p>
+  <p><b>Mission:</b> manage your crew. Keep them safe for ${NS.DAYS} nights, and find out what the Moon is made of.</p>
   <h3>Each day</h3>
   <p class="fine">You have ${NS.POWER_PER_DAY} power each day. Every tool costs 1 power. When it runs out, go to bed.</p>
   <ul>
   <li><b>Check:</b> tap Check, then a room. Beeps = space rays getting in. Fewer beeps is safer.</li>
   <li><b>Dirt:</b> dig Moon dirt onto a roof (1 bag a day). More dirt blocks more rays, and it blocks Sun-storm rays best.</li>
-  <li><b>Seeds:</b> plant in a safe room. Healthy plants make air.</li>
+  <li><b>Seeds:</b> plant in a safe room (up to 2 trays a room, 6 in all). Each healthy tray makes air.</li>
   <li><b>Rock:</b> pick a place, then say Yes or No to sending a crew member. Whatever they find goes in the Moon book, and you send it to NASA.</li>
   <li><b>Quake:</b> your pilot sets a sensor that listens for moonquakes.</li>
   <li><b>Sleep:</b> pick the safest room and end the day.</li></ul>

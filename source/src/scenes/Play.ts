@@ -21,7 +21,7 @@ const TOOLS = [
 ];
 const TIPS: any = {
   noTool: { s: 'Pick a tool first' }, power: { s: 'No power. Bedtime!', point: { tool: 'sleep' } }, air: { s: 'Not enough air' },
-  bagDay: { s: 'One dig a day' }, roofFull: { s: 'Roof is full' }, trays: { s: 'No seed trays left' }, locked: { s: 'Unlocks soon' }, placed: { s: 'Sensor is listening' }, empty: { s: 'Nothing new here' }
+  bagDay: { s: 'One dig a day' }, roofFull: { s: 'Roof is full' }, trays: { s: 'No seed trays left' }, roomTrays: { s: 'Two trays per room' }, locked: { s: 'Unlocks soon' }, placed: { s: 'Sensor is listening' }, empty: { s: 'Nothing new here' }
 };
 const STORM_WORDS = ['quiet', 'small', 'medium', 'BIG'];
 const SUN_SCALE = [0.62, 0.86, 1.12, 1.42];
@@ -57,6 +57,7 @@ export class Play extends Phaser.Scene {
     this.add.image(150, 168, 'glow').setTint(0x6fa8ff).setScale(0.6).setAlpha(0.35).setDepth(2);
     this.tweens.add({ targets: earth, angle: 360, duration: 90000, repeat: -1 });
     this.add.image(W / 2, H - 115, 'ground').setDisplaySize(W, 230).setDepth(5);
+    this.buildLander(1208, 552);
 
     this.buildSun();
     ids.forEach((id) => this.buildRoom(id));
@@ -183,6 +184,25 @@ export class Play extends Phaser.Scene {
       hit.on('pointerup', () => { if (!this.cut && !this.modalKind) { SFX.tap(); this.showToast(m.ico, m.name + ', ' + m.role); } });
       this.crew[m.id] = a;
     });
+  }
+  // The crew's spacecraft, landed behind the rooms. Drawn in code; a generic lander, not a copy of a real one.
+  buildLander(x: number, y: number) {
+    const c = this.add.container(x, y).setDepth(6).setScale(1.15), g = this.add.graphics();
+    g.fillStyle(0x000000, 0.28).fillEllipse(6, 4, 96, 14);
+    g.lineStyle(3, 0x8f98b8, 1); [[-24, -22, -44, 0], [24, -22, 44, 0], [-10, -22, -18, 0], [10, -22, 18, 0]].forEach((l) => g.lineBetween(l[0], l[1], l[2], l[3]));
+    g.fillStyle(0xaab3d0, 1); [-44, -18, 18, 44].forEach((fx) => g.fillEllipse(fx, 1, 16, 5));
+    g.fillStyle(0x6e7596, 1).fillTriangle(-7, -20, 7, -20, 0, -8);
+    g.fillStyle(0xd7b25e, 1).fillRoundedRect(-30, -50, 60, 30, 7).lineStyle(2, 0x9a7a30, 1).strokeRoundedRect(-30, -50, 60, 30, 7);
+    g.lineStyle(1.5, 0xf2dc9b, 0.8).lineBetween(-20, -48, -24, -22).lineBetween(-6, -48, -8, -22).lineBetween(8, -48, 8, -22).lineBetween(22, -48, 24, -22);
+    g.fillStyle(0xe9edf8, 1).fillRoundedRect(-19, -78, 38, 30, 9).lineStyle(2, 0x8f98b8, 1).strokeRoundedRect(-19, -78, 38, 30, 9);
+    g.fillStyle(0x1a2656, 1).fillRoundedRect(-9, -72, 18, 12, 5);
+    g.lineStyle(2, 0xaab3d0, 1).lineBetween(14, -78, 26, -94); g.fillStyle(0xe9edf8, 1).fillCircle(26, -95, 5);
+    c.add(g);
+    const beacon = this.add.circle(-14, -80, 3, 0xff6b7d, 1); c.add(beacon);
+    this.tweens.add({ targets: beacon, alpha: 0.15, duration: 700, yoyo: true, repeat: -1 });
+    // footprints from the ramp toward the rooms
+    const fp = this.add.graphics().setDepth(6); fp.fillStyle(0x6f6554, 0.55);
+    for (let i = 0; i < 5; i++) fp.fillEllipse(x - 62 - i * 17, y + 6 + (i % 2 ? 4 : 0), 8, 3.5);
   }
   buildSites() {
     SITES.forEach((st, i) => {
