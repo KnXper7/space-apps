@@ -3,6 +3,7 @@ import { frame, W, H, C, text, icon } from '../ui';
 import { SFX } from '../audio';
 import { stars } from './Title';
 import { CREW } from '../crew';
+import { CONFIG } from '../config';
 
 // Four quick beats. Tap anywhere to skip.
 export class Intro extends Phaser.Scene {
@@ -11,23 +12,31 @@ export class Intro extends Phaser.Scene {
     frame(this);
     this.add.image(W / 2, H / 2, 'sky').setDisplaySize(W, H);
     stars(this, 80);
-    let go = false;
-    const next = () => { if (go) return; go = true; SFX.tap(); this.cameras.main.fadeOut(300, 4, 6, 26); this.time.delayedCall(320, () => this.scene.start('Play')); };
-    this.input.once('pointerdown', next);
-    this.input.keyboard?.once('keydown', next);
+    const LINES = CONFIG.intro.lines;
+    const nav = document.getElementById('intro-nav')!, nextB = document.getElementById('intro-next') as HTMLButtonElement, skipB = document.getElementById('intro-skip') as HTMLButtonElement, dots = document.getElementById('intro-dots')!;
+    skipB.textContent = CONFIG.intro.skip; nav.hidden = false;
+    dots.innerHTML = LINES.map(() => '<i></i>').join('');
+    let go = false, cur = -1, curC: Phaser.GameObjects.Container | null = null;
+    const done = () => { nav.hidden = true; nextB.onclick = null; skipB.onclick = null; };
+    const finish = () => { if (go) return; go = true; SFX.tap(); done(); this.cameras.main.fadeOut(300, 4, 6, 26); this.time.delayedCall(320, () => this.scene.start('Play')); };
+    this.events.once('shutdown', done);
+    const advance = () => { if (go) return; if (cur >= LINES.length - 1) finish(); else show(cur + 1); };
+    nextB.onclick = advance; skipB.onclick = finish;
+    this.input.on('pointerdown', advance);
+    this.input.keyboard?.on('keydown', (e: KeyboardEvent) => { if (['Enter', ' ', 'ArrowRight'].includes(e.key)) advance(); });
 
-    const LAST = 3;
-    const beat = (i: number, build: (c: Phaser.GameObjects.Container) => void, words: string) => {
-      this.time.delayedCall(i * 2900, () => {
-        if (go) return;
-        const c = this.add.container(W / 2, H / 2).setAlpha(0);
-        build(c);
-        const t = text(this, 0, 215, words, 38, '#ffffff', 700); t.setWordWrapWidth(980); c.add(t);
-        this.tweens.add({ targets: c, alpha: 1, duration: 450 });
-        this.tweens.add({ targets: c, alpha: 0, duration: 450, delay: 2350, onComplete: () => c.destroy() });
-        SFX.whoosh();
-        if (i === LAST) this.time.delayedCall(2700, next);
-      });
+    const builders: ((c: Phaser.GameObjects.Container) => void)[] = [];
+    const beat = (i: number, build: (c: Phaser.GameObjects.Container) => void, _words?: string) => { builders[i] = build; };
+    const show = (i: number) => {
+      cur = i; SFX.tap();
+      if (curC) { const old = curC; this.tweens.add({ targets: old, alpha: 0, duration: 220, onComplete: () => old.destroy() }); }
+      const c = this.add.container(W / 2, H / 2 - 30).setAlpha(0); curC = c;
+      builders[i](c);
+      const t = text(this, 0, 205, LINES[i], 38, '#ffffff', 700); t.setWordWrapWidth(980); c.add(t);
+      this.tweens.add({ targets: c, alpha: 1, duration: 420 });
+      SFX.whoosh();
+      nextB.textContent = i === LINES.length - 1 ? CONFIG.intro.start : CONFIG.intro.next;
+      [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
     };
     beat(0, (c) => {
       const e = this.add.image(-210, -10, 'earthC').setDisplaySize(190, 190);
@@ -56,7 +65,7 @@ export class Intro extends Phaser.Scene {
         this.tweens.add({ targets: ic, y: -22, duration: 400, yoyo: true, delay: 300 + i * 220 });
       });
     }, 'Find out what the Moon is made of. Keep your crew safe.');
-    text(this, W / 2, 690, 'tap to skip', 16, '#7f8ab8', 400).setAlpha(0.8);
     this.cameras.main.fadeIn(350, 4, 6, 26);
+    show(0);
   }
 }

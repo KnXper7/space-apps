@@ -16,5 +16,19 @@ html, body { margin: 0; height: 100%; background: #05081c; overflow: hidden; fon
 .tag { font-size: .62rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; background: #4a5a9a; color: #fff; }
 .tag.REAL { background: #19884f; } .tag.MADE { background: #8a5a1a; }
 .src { font-size: .62rem; font-weight: 700; border-radius: 999px; padding: 1px 7px; background: #4a5a9a; color: #fff; } .src.live { background: #19884f; }
-.close { margin-top: 1.2em; background: #ffb020; color: #1b1300; font: 700 1rem "Lexend", sans-serif; border: 0; border-radius: 999px; padding: 12px 28px; cursor: pointer; }
+.close { margin-top: 1.2em; background: var(--accent); color: var(--accent-ink); font: 700 1rem "Lexend", sans-serif; border: 0; border-radius: 999px; padding: 12px 28px; cursor: pointer; }
 .close:focus-visible, .sheet a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* ---- Intro bar (Next / Skip). Tweak the variables below. ---- */
+:root { --accent: #ffb020; --accent-ink: #1b1300; --panel: #0e1432; --ink: #eef1ff; --btn-radius: 999px; --btn-font: "Lexend", system-ui, sans-serif; }
+#intro-nav { position: fixed; left: 0; right: 0; bottom: max(18px, 4vh); z-index: 8; display: flex; align-items: center; justify-content: center; gap: 22px; pointer-events: none; }
+#intro-nav[hidden] { display: none; }
+#intro-nav > * { pointer-events: auto; }
+#intro-next { background: var(--accent); color: var(--accent-ink); font: 700 clamp(1rem, 2.4vh, 1.25rem) var(--btn-font); border: 0; border-radius: var(--btn-radius); padding: 14px 40px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+#intro-next:hover { filter: brightness(1.08); transform: translateY(-1px); }
+#intro-skip { background: transparent; color: #98a3d0; font: 500 1rem var(--btn-font); border: 0; padding: 10px 14px; cursor: pointer; }
+#intro-skip:hover { color: var(--ink); }
+#intro-dots { display: flex; gap: 8px; }
+#intro-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.25); }
+#intro-dots i.on { background: var(--accent); }
+#intro-next:focus-visible, #intro-skip:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }

@@ -1,10 +1,8 @@
 import Phaser from 'phaser';
+import { CONFIG } from './config';
 
 export const W = 1280, H = 720;
-export const C = {
-  bg0: 0x05081c, bg1: 0x0f1740, ink: 0xeef1ff, dim: 0x98a3d0, sun: 0xffb020, safe: 0x6be3b0, careful: 0xffd166, ouch: 0xff6f61,
-  air: 0x6fd3ff, heart: 0xff6b7d, dust: 0xa99c86, dust2: 0x8a7f6c, glass: 0xffffff, panel: 0x0c1128
-};
+export const C = CONFIG.colors;
 export const FACE_COLOR: Record<string, number> = { safe: C.safe, careful: C.careful, ouch: C.ouch };
 export const FACE_ICON: Record<string, string> = { safe: 'smiley-f', careful: 'smiley-meh-f', ouch: 'smiley-sad-f' };
 export const FONT = 'Lexend';

@@ -1,9 +1,10 @@
+import { CONFIG } from '../config';
 import Phaser from 'phaser';
 import { W, H, C, FACE_COLOR, FACE_ICON, frame, icon, text, pill, panel, half, halfLine } from '../ui';
 import { SFX, setMuted, sfxMuted } from '../audio';
 import { openGrownups } from '../overlay';
 import { stars } from './Title';
-import { CREW, JOB, SITES, QUAKE_FINDS, DISCO, discoById, crewById } from '../crew';
+import { CREW, JOB, SITES, QUAKE_FINDS, SCIENCE_GOAL, DISCO, discoById, crewById } from '../crew';
 declare const NS: any, NSData: any;
 
 const RX: any = { A: 240, B: 640, C: 1040 };
@@ -31,7 +32,7 @@ const fmtDate = (d: string) => { const p = d.split('-'); return MONTHS[+p[1] - 1
 export class Play extends Phaser.Scene {
   S: any; level = 'normal'; nights: any[] = []; readings: any = {}; clues: any = {}; journal: any[] = []; seen: any = {};
   tool: string | null = null; tip: any = null; dig: any = null; alarm: any = null; cut = false; modalObjs: any[] = []; modalKind = '';
-  rv: any = {}; badges: any = {}; keeper: any; keeperAt = 'B'; hand: any; cap: any; capBg: any; capTxt: any; sun: any; sunGlow: any; sunRays: any;
+  rv: any = {}; badges: any = {}; keeper: any; keeperAt = 'B'; hand: any; handShadow: any; handIcon: any; lastTap = 0; helpOn = false; helpNow = false; cap: any; capBg: any; capTxt: any; sun: any; sunGlow: any; sunRays: any;
   hudG: any; hudDays: any[] = []; dockBtns: any = {}; jBadge: any; jBadgeT: any; toast: any; tipTimer: any; nightEv: any[] = []; nightObjs: any[] = [];
   crew: any = {}; sci: any = {}; sites: any[] = []; sensorObj: any = null; lastRes: any = null;
   dust: any; hot: any; alarmObjs: any[] = []; digObjs: any = null; pointer: any;
@@ -65,8 +66,17 @@ export class Play extends Phaser.Scene {
     this.buildHud();
     this.buildDock();
     this.buildCaption();
-    this.hand = icon(this, 'hand-pointing-f', 0, 0, 56, C.sun).setDepth(120).setVisible(false);
-    this.tweens.add({ targets: this.hand, scale: this.hand.scale * 1.12, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    const HC = CONFIG.hand;
+    this.handShadow = icon(this, 'hand-pointing-f', 0, HC.shadowOffset, HC.size, 0x000000, HC.shadowOpacity);
+    this.handIcon = icon(this, 'hand-pointing-f', 0, 0, HC.size, HC.color, HC.opacity);
+    this.hand = this.add.container(0, 0, [this.handShadow, this.handIcon]).setDepth(120).setVisible(false);
+    this.tweens.add({ targets: this.hand, scale: HC.bob, duration: HC.bobMs, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    this.lastTap = this.time.now; this.helpOn = false;
+    this.input.on('pointerdown', () => { this.lastTap = this.time.now; if (this.helpOn) { this.helpOn = false; this.time.delayedCall(30, () => this.refresh()); } });
+    if (CONFIG.hint.idleSeconds > 0) this.time.addEvent({ delay: 1000, loop: true, callback: () => {
+      if (this.helpOn || this.cut || this.modalKind || this.dig || this.alarm || this.S.phase !== 'day') return;
+      if (this.time.now - this.lastTap > CONFIG.hint.idleSeconds * 1000) { this.helpOn = true; this.refresh(); }
+    } });
     this.dust = this.add.particles(0, 0, 'dot', { speed: { min: 30, max: 120 }, lifespan: 500, scale: { start: 0.3, end: 0 }, tint: 0xc9b99a, emitting: false, gravityY: 120 }).setDepth(66);
     this.hot = this.add.particles(0, 0, 'dot', { speed: { min: 50, max: 170 }, lifespan: 420, scale: { start: 0.32, end: 0 }, tint: 0xffe2a0, emitting: false }).setDepth(66);
     this.input.keyboard?.on('keydown-SPACE', () => { if (this.dig) this.digTap(); });
@@ -213,6 +223,7 @@ export class Play extends Phaser.Scene {
     const sb: any = pill(this, 1204, 38, 48, 48, { icon: 'speaker-high', depth: 102, onClick: () => { setMuted(!sfxMuted()); sb.ico.setTexture(sfxMuted() ? 'i-speaker-slash' : 'i-speaker-high'); if (!sfxMuted()) SFX.tap(); } });
     pill(this, 1260 - 8, 38, 48, 48, { icon: 'info', depth: 102, onClick: () => { if (!this.cut) { SFX.tap(); openGrownups(this.registry.get('tonight'), this.S.level); } } });
     jb.setX(1124); sb.setX(1180);
+    if (CONFIG.hint.helpButton) pill(this, 1252, 98, 48, 48, { icon: 'question', depth: 102, onClick: () => { if (!this.cut && !this.modalKind && !this.alarm) this.askHelp(); } });
   }
   refreshHud() {
     const S = this.S, g = this.hudG; g.clear();
@@ -265,13 +276,13 @@ export class Play extends Phaser.Scene {
     });
   }
   buildCaption() {
-    this.capBg = this.add.graphics().setDepth(110); this.capTxt = text(this, W / 2, 292, '', 26, '#ffffff', 600).setDepth(111);
+    this.capBg = this.add.graphics().setDepth(110); this.capTxt = text(this, W / 2, CONFIG.caption.y, '', CONFIG.caption.size, '#ffffff', 600).setDepth(111);
   }
   setCaption(str: string) {
     this.capBg.clear(); this.capTxt.setText(str || '');
     if (!str) return;
     const w = this.capTxt.width + 56;
-    this.capBg.fillStyle(0x0c1230, 0.82).fillRoundedRect(W / 2 - w / 2, 292 - 25, w, 50, 25).lineStyle(1.5, 0xffffff, 0.25).strokeRoundedRect(W / 2 - w / 2, 292 - 25, w, 50, 25);
+    this.capBg.fillStyle(CONFIG.caption.bg, CONFIG.caption.bgOpacity).fillRoundedRect(W / 2 - w / 2, CONFIG.caption.y - 25, w, 50, 25).lineStyle(1.5, 0xffffff, 0.25).strokeRoundedRect(W / 2 - w / 2, CONFIG.caption.y - 25, w, 50, 25);
     this.capTxt.setAlpha(0); this.capBg.setAlpha(0); this.tweens.add({ targets: [this.capTxt, this.capBg], alpha: 1, duration: 200 });
   }
 
@@ -310,14 +321,31 @@ export class Play extends Phaser.Scene {
     this.refreshHud(); this.refreshDock(); this.applySun();
     ids.forEach((id) => { const on = (!!this.tool && this.tool !== 'rock' && !this.cut && !this.dig) || !!this.alarm; const ring = this.rv[id].ring; this.tweens.add({ targets: ring, alpha: on ? 0.9 : 0, duration: 200 }); });
     this.sites.forEach((c: any) => c.setVisible(this.tool === 'rock' && !this.cut && !this.modalKind));
-    const g = this.guide(); this.setCaption(this.cut || this.modalKind ? '' : g.s);
+    let g = this.guide();
+    if (!g.s && !g.point && (this.helpOn || this.helpNow)) g = this.suggest();
+    this.setCaption(this.cut || this.modalKind ? '' : g.s);
     const p = g.point;
-    if (!p || this.cut || this.modalKind) { this.hand.setVisible(false); return; }
+    if (!CONFIG.hand.enabled || !p || this.cut || this.modalKind) { this.hand.setVisible(false); return; }
     this.hand.setVisible(true);
-    if (p.tool) { const b = this.dockBtns[p.tool]; this.hand.setPosition(b.x, DOCK_Y - 62).setAngle(180); }
-    else if (p.room) { this.hand.setPosition(RX[p.room] + 14, BASE - 40).setAngle(0); }
-    else if (p.dig) { this.hand.setPosition(RX[this.dig.room] + 185, BASE - 34).setAngle(0); }
+    if (p.tool) { const b = this.dockBtns[p.tool]; this.placeHand(b.x, DOCK_Y - 62, 180); }
+    else if (p.room) this.placeHand(RX[p.room] + 14, BASE - 40, 0);
+    else if (p.dig) this.placeHand(RX[this.dig.room] + 185, BASE - 34, 0);
   }
+  placeHand(x: number, y: number, angle: number) {
+    this.hand.setPosition(x, y).setAngle(angle);
+    this.handShadow.y = angle === 180 ? -CONFIG.hand.shadowOffset : CONFIG.hand.shadowOffset;   // shadow stays below on screen
+  }
+  // The next sensible step, used by the ? button and the idle hint
+  suggest(): any {
+    const S = this.S;
+    if (S.power < 1) return { s: 'Bedtime!', point: { tool: 'sleep' } };
+    if (S.air <= 3 && S.trays.length < NS.MAX_TRAYS) return { s: 'Plants make air', point: { tool: 'plant' } };
+    if (!S.bagToday) return { s: 'Cover a roof with dirt', point: { tool: 'bag' } };
+    if (this.sci.found.length < SCIENCE_GOAL && S.air >= 1) return { s: 'Send a crew member for rocks', point: { tool: 'rock' } };
+    if (S.day >= 3 && !this.sci.sensor) return { s: 'Place a sensor', point: { tool: 'quake' } };
+    return { s: 'Done for today? Go to bed', point: { tool: 'sleep' } };
+  }
+  askHelp() { this.helpNow = true; this.lastTap = this.time.now; this.refresh(); this.helpNow = false; this.helpOn = true; SFX.tap(); }
 
   // ---------------------------------------------------------------- tools
   fail(code: string) { this.tip = TIPS[code] || { s: 'Not now' }; this.tool = null; SFX.no(); this.refresh(); if (this.tipTimer) this.tipTimer.remove(); this.tipTimer = this.time.delayedCall(3200, () => { this.tip = null; this.refresh(); }); }

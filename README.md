@@ -17,3 +17,7 @@ npm run dev
 
 ## Stack
 Vite, TypeScript, Phaser 3. Icons: Phosphor. Font: Lexend. Pictures: NASA.
+
+## Easy edits
+- `src/config.ts`: hand arrow (size, shadow, opacity, on/off), idle-hint time, help button, intro words and button labels, caption, game colors.
+- `src/style.css`: page styling. The Next/Skip bar and info sheet use CSS variables at the top of the last block (`--accent`, `--btn-radius`, ...).
