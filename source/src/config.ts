@@ -27,6 +27,8 @@ export const CONFIG = {
     ],
     next: 'Next', start: 'Start', skip: 'Skip',
   },
+  // Names shown to players
+  text: { facts: 'Mission Facts' },
   // Caption pill (the few words under the Earth and Sun)
   caption: { y: 292, size: 26, bg: 0x0c1230, bgOpacity: 0.82 },
   // Game colors

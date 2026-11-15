@@ -8,7 +8,7 @@
   // Beeps = rays that get into a room, counted in a simple way (not measured doses). Index = Moon-dirt bags on the roof (0-4).
   var COSMIC = [4, 3, 3, 2, 2];     // always-there rays: dirt helps a little
   var STORM_MULT = [3, 2, 1, 0, 0]; // sun-storm rays: dirt helps a LOT
-  var MAX_DIRT = 4, DAYS = 5, POWER_PER_DAY = 3, POWER_CAP = 5, AIR_PER_NIGHT = 2, MAX_TRAYS = 2;
+  var MAX_DIRT = 4, DAYS = 7, POWER_PER_DAY = 3, POWER_CAP = 5, AIR_PER_NIGHT = 2, MAX_TRAYS = 2;
 
   var LEVELS = {
     easy:   { label: 'Easy',   hearts: 6, air: 10, readings: 'always', hints: true },
@@ -45,7 +45,9 @@
     opts = opts || {};
     var rng = opts.rng || Math.random;
     var lv = LEVELS[opts.level] ? opts.level : 'normal';
-    var dirt = shuffle([0, 1, 2], rng);
+    // One room starts with NO dirt (where the seeds died). Which room, and how much dirt the others have, changes every game.
+    var bare = Math.floor(rng() * 3);
+    var dirt = [0, 1, 2].map(function (i) { return i === bare ? 0 : 1 + Math.floor(rng() * 3); });
     return {
       level: lv, day: 1, phase: 'day',
       power: POWER_PER_DAY, air: LEVELS[lv].air, airMax: 10, hearts: LEVELS[lv].hearts,

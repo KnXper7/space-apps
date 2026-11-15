@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { W, H, C, frame, icon, text, pill } from '../ui';
 import { SFX } from '../audio';
 import { openGrownups } from '../overlay';
+import { CONFIG } from '../config';
 import { stars } from './Title';
 import { SCIENCE_GOAL } from '../crew';
 declare const NS: any;
@@ -81,7 +82,7 @@ export class Report extends Phaser.Scene {
       this.tweens.add({ targets: c, alpha: 1, duration: 400, delay: 1900 + i * 250 });
     });
     const again = pill(this, W / 2 - 130, 640, 240, 66, { label: 'Play again', icon: 'play', fill: C.sun, fillA: 1, stroke: 0xffe0a0, strokeA: 0.9, color: 0x1b1300, size: 26, onClick: () => { SFX.tap(); this.scene.start('Title'); } }).setAlpha(0);
-    const grown = pill(this, W / 2 + 130, 640, 240, 66, { label: 'Grown-ups', icon: 'info', size: 24, onClick: () => { SFX.tap(); openGrownups(this.registry.get('tonight'), this.S.level); } }).setAlpha(0);
+    const grown = pill(this, W / 2 + 130, 640, 240, 66, { label: CONFIG.text.facts, icon: 'info', size: 24, onClick: () => { SFX.tap(); openGrownups(this.registry.get('tonight'), this.S.level); } }).setAlpha(0);
     this.tweens.add({ targets: [again, grown], alpha: 1, duration: 400, delay: 2700 });
     if (count > 0) {
       const em = this.add.particles(0, 0, 'dot', { speed: { min: 200, max: 520 }, angle: { min: 215, max: 325 }, lifespan: 2600, gravityY: 520, scale: { start: 0.5, end: 0.2 }, tint: [0xffb020, 0x6be3b0, 0x6fd3ff, 0xff6b7d, 0xffffff], emitting: false, rotate: { min: 0, max: 360 } }).setDepth(50);

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { frame, W, H, C, text, icon, pill } from '../ui';
 import { SFX, setMuted, sfxMuted } from '../audio';
 import { openGrownups } from '../overlay';
+import { CONFIG } from '../config';
 declare const NSData: any;
 
 export function stars(scene: Phaser.Scene, n = 90) {
@@ -45,7 +46,7 @@ export class Title extends Phaser.Scene {
     const play = pill(this, W / 2, 548, 280, 80, { label: 'Play', icon: 'play', fill: C.sun, fillA: 1, stroke: 0xffe0a0, strokeA: 0.9, color: 0x1b1300, size: 34, iconSize: 36, depth: 5, onClick: () => { SFX.tap(); this.cameras.main.fadeOut(350, 4, 6, 26); this.time.delayedCall(360, () => this.scene.start('Intro')); } });
     this.tweens.add({ targets: play, scale: 1.04, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
-    pill(this, 130, 678, 200, 44, { label: 'Grown-ups', icon: 'info', size: 18, weight: 500, depth: 5, onClick: () => { SFX.tap(); openGrownups(this.registry.get('tonight'), this.registry.get('level')); } });
+    pill(this, 130, 678, 200, 44, { label: CONFIG.text.facts, icon: 'info', size: 18, weight: 500, depth: 5, onClick: () => { SFX.tap(); openGrownups(this.registry.get('tonight'), this.registry.get('level')); } });
     const snd: any = pill(this, W - 56, 678, 52, 44, { icon: 'speaker-high', depth: 5, onClick: () => { setMuted(!sfxMuted()); snd.ico.setTexture(sfxMuted() ? 'i-speaker-slash' : 'i-speaker-high'); if (!sfxMuted()) SFX.tap(); } });
     text(this, W / 2, 692, 'NASA photo: Artemis II Earthset', 14, '#8e99c6', 400).setDepth(5);
     this.cameras.main.fadeIn(400, 4, 6, 26);

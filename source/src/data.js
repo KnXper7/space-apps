@@ -54,9 +54,19 @@
       return { count: j.length, latest: j.length ? j[j.length - 1].eventTime : null, fetched: clock() };
     }).catch(function () { return null; });
   }
-  // Night 1 is today's real Sun when we can reach it. Nights 2-5 are real nights from the September 2017 storms.
+  // Night 1 is today's real Sun when we can reach it. The other nights are real nights from the September 2017 storms.
+  // Night 1 is today's real Sun when we can reach it. The other six nights are drawn at random from the saved real nights,
+  // so the storms come on different nights each game (a real night can come up twice).
+  var NIGHTS_PER_GAME = 7;
   function buildNights(tonight) {
-    var nights = JSON.parse(JSON.stringify(SAVED_NIGHTS));
+    var pool = [];
+    while (pool.length < NIGHTS_PER_GAME) {
+      var bag = JSON.parse(JSON.stringify(SAVED_NIGHTS));
+      for (var i = bag.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = bag[i]; bag[i] = bag[j]; bag[j] = t; }
+      if (pool.length && bag[0].date === pool[pool.length - 1].date) bag.push(bag.shift());
+      pool = pool.concat(bag);
+    }
+    var nights = pool.slice(0, NIGHTS_PER_GAME);
     if (tonight) nights[0] = tonight;
     return nights;
   }
@@ -83,7 +93,7 @@
   // ---- proof, part by part: what in the game is real, where it comes from, and what we simplified ----------
   // tag: REAL = taken straight from NASA/NOAA data; BASED ON REAL = a real idea, simplified; MADE UP = a game choice.
   var PROOF = [
-    { part: 'Sun storms', tag: 'REAL', real: 'Each night’s storm size is NOAA’s real radiation-storm level (S1 starts at 10 pfu, S2 at 100, S3 at 1,000 protons of 10 MeV or more). Night 1 is read live from the GOES satellite. Nights 2–5 are real September 2017 nights: S2, S2, S2, S3.',
+    { part: 'Sun storms', tag: 'REAL', real: 'Each night’s storm size is NOAA’s real radiation-storm level (S1 starts at 10 pfu, S2 at 100, S3 at 1,000 protons of 10 MeV or more). Night 1 is read live from the GOES satellite. The other six nights are picked at random from five real September 2017 nights (none, S2, S2, S2, S3), so storms come on different nights every game.',
       links: [['NOAA SWPC radiation storms', 'https://www.swpc.noaa.gov/phenomena/solar-radiation-storm'], ['live GOES feed', PROTONS_URL], ['NOAA alert table, Redmon et al. 2018', 'https://repository.library.noaa.gov/view/noaa/21802'], ['NASA on Sept 2017', 'https://www.nasa.gov/feature/goddard/2017/september-2017s-intense-solar-activity-viewed-from-space']],
       simple: 'GOES measures near Earth. We use it as the storm size at the Moon, which is about the same distance from the Sun.' },
     { part: 'Two kinds of rays', tag: 'BASED ON REAL', real: 'Space rays that are always there (cosmic rays), plus extra rays during Sun storms. NASA says shielding works for Sun-storm particles, but cosmic rays are much harder to stop. That is why thick dirt helps a lot on storm nights and only a little on quiet ones.',
@@ -131,9 +141,9 @@
     { part: 'Going outside in a storm', tag: 'MADE UP', real: 'On a big-storm night, sending a crew member outside costs 1 heart. NASA’s worry about radiation outside the habitat is real, but this exact rule is ours.',
       links: [],
       simple: 'It teaches “no choice is free”: a rock sample is worth finding, and it is not free.' },
-    { part: 'Air, power, hearts, five nights', tag: 'MADE UP', real: 'These are game rules that make you choose. A lunar day lasts about 14 Earth days; a game “night” is a rest, not a lunar night.',
+    { part: 'Air, power, hearts, seven nights', tag: 'MADE UP', real: 'These are game rules that make you choose. A lunar day lasts about 14 Earth days; a game “night” is a rest, not a lunar night.',
       links: [['NASA: a lunar day is about 14 Earth days', 'https://www.nasa.gov/?p=995114']],
-      simple: 'The numbers (air −2 a night, 3 power a day, 5 nights, 1 power and 1 air for a rock trip) are ours.' }
+      simple: 'The numbers (air −2 a night, 3 power a day, 7 nights, 1 power and 1 air for a rock trip) are ours.' }
   ];
 
   root.NSData = { SAVED_NIGHTS: SAVED_NIGHTS, SAVED_SOURCES: SAVED_SOURCES, PROTONS_URL: PROTONS_URL, sizeFromFlux: sizeFromFlux,

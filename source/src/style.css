@@ -32,3 +32,10 @@ html, body { margin: 0; height: 100%; background: #05081c; overflow: hidden; fon
 #intro-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.25); }
 #intro-dots i.on { background: var(--accent); }
 #intro-next:focus-visible, #intro-skip:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.sheet .row { display: flex; gap: 12px; flex-wrap: wrap; }
+.close.alt { background: transparent; color: var(--ink); border: 1.5px solid rgba(255,255,255,.4); }
+.sheet .row { display: flex; gap: 12px; flex-wrap: wrap; }
+.close.alt { background: transparent; color: var(--ink); border: 1.5px solid rgba(255,255,255,.4); }
+.sheet { font-size: .92rem; } .sheet h3 { margin: 1em 0 .2em; }
+.sheet .row { position: sticky; bottom: -26px; background: linear-gradient(to top, #0e1432 70%, transparent); padding: 14px 0 4px; margin-top: .6em; }
+.sheet .row .close { margin-top: 0; }

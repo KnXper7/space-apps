@@ -2,7 +2,7 @@ import { CONFIG } from '../config';
 import Phaser from 'phaser';
 import { W, H, C, FACE_COLOR, FACE_ICON, frame, icon, text, pill, panel, half, halfLine } from '../ui';
 import { SFX, setMuted, sfxMuted } from '../audio';
-import { openGrownups } from '../overlay';
+import { openGrownups, openHowTo } from '../overlay';
 import { stars } from './Title';
 import { CREW, JOB, SITES, QUAKE_FINDS, SCIENCE_GOAL, DISCO, discoById, crewById } from '../crew';
 declare const NS: any, NSData: any;
@@ -214,7 +214,7 @@ export class Play extends Phaser.Scene {
   // ---------------------------------------------------------------- HUD + dock
   buildHud() {
     this.hudG = this.add.graphics().setDepth(100);
-    for (let i = 0; i < 5; i++) this.hudDays.push(text(this, 40 + i * 36, 38, String(i + 1), 17, '#1b1300', 800).setDepth(101).setVisible(false));
+    for (let i = 0; i < NS.DAYS; i++) this.hudDays.push(text(this, 40 + i * 36, 38, String(i + 1), 17, '#1b1300', 800).setDepth(101).setVisible(false));
     const zone = (x: number, w: number, k: string) => { const z = this.add.rectangle(x, 38, w, 48, 0xffffff, 0.001).setDepth(102).setInteractive({ useHandCursor: true }); z.on('pointerup', () => { if (!this.cut && !this.modalKind) { SFX.tap(); this.info(k); } }); };
     zone(425, 170, 'power'); zone(678, 250, 'air'); zone(915, 190, 'hearts');
     const bk = this.add.rectangle(1052, 38, 100, 48, 0xffffff, 0.001).setDepth(102).setInteractive({ useHandCursor: true }); bk.on('pointerup', () => { if (!this.cut && !this.modalKind) { SFX.tap(); this.openMoonBook(); } });
@@ -223,12 +223,12 @@ export class Play extends Phaser.Scene {
     const sb: any = pill(this, 1204, 38, 48, 48, { icon: 'speaker-high', depth: 102, onClick: () => { setMuted(!sfxMuted()); sb.ico.setTexture(sfxMuted() ? 'i-speaker-slash' : 'i-speaker-high'); if (!sfxMuted()) SFX.tap(); } });
     pill(this, 1260 - 8, 38, 48, 48, { icon: 'info', depth: 102, onClick: () => { if (!this.cut) { SFX.tap(); openGrownups(this.registry.get('tonight'), this.S.level); } } });
     jb.setX(1124); sb.setX(1180);
-    if (CONFIG.hint.helpButton) pill(this, 1252, 98, 48, 48, { icon: 'question', depth: 102, onClick: () => { if (!this.cut && !this.modalKind && !this.alarm) this.askHelp(); } });
+    if (CONFIG.hint.helpButton) pill(this, 1252, 98, 48, 48, { icon: 'question', depth: 102, onClick: () => { if (!this.cut && !this.modalKind && !this.alarm) { SFX.tap(); openHowTo(() => this.askHelp()); } } });
   }
   refreshHud() {
     const S = this.S, g = this.hudG; g.clear();
-    for (let i = 0; i < 5; i++) {
-      const x = 40 + i * 36, cur = i + 1 === Math.min(S.day, 5), past = i + 1 < S.day;
+    for (let i = 0; i < NS.DAYS; i++) {
+      const x = 40 + i * 36, cur = i + 1 === Math.min(S.day, NS.DAYS), past = i + 1 < S.day;
       if (cur) g.fillStyle(C.sun, 1).fillCircle(x, 38, 15); else if (past) g.fillStyle(0xffffff, 0.35).fillCircle(x, 38, 6); else g.lineStyle(1.5, 0xffffff, 0.4).strokeCircle(x, 38, 6);
       this.hudDays[i].setVisible(cur);
     }
@@ -314,7 +314,7 @@ export class Play extends Phaser.Scene {
     if (S.day >= 2 && !this.seen.rock && S.air >= 3) return { s: 'Lily can find rocks', point: { tool: 'rock' } };
     if (S.day >= 3 && !this.seen.quake && !this.sci.sensor) return { s: 'Jun can place a sensor', point: { tool: 'quake' } };
     if (S.air <= 3) return { s: 'Low air! Plants make air' };
-    if (S.day === 5) return { s: 'Last night!' };
+    if (S.day === NS.DAYS) return { s: 'Last night!' };
     return { s: '' };
   }
   refresh() {
@@ -549,13 +549,13 @@ export class Play extends Phaser.Scene {
   beginNight(id: string) {
     this.tool = null; this.tip = null; if (this.dig) this.cancelDig(); this.moveKeeper(id);
     if (NS.flareTonight(this.S) > 0) {
-      this.alarm = { room: id }; SFX.siren();
+      const alarmMs = 4000 + Math.random() * 3000; this.alarm = { room: id }; SFX.siren();
       const red = this.add.rectangle(W / 2, H / 2, W, H, 0xff2a2a, 0.0).setDepth(50); this.tweens.add({ targets: red, alpha: 0.16, duration: 400, yoyo: true, repeat: -1 });
       const sir = icon(this, 'siren', W / 2, 180, 64, C.ouch).setDepth(112); this.tweens.add({ targets: sir, angle: 14, scale: sir.scale * 1.12, duration: 160, yoyo: true, repeat: -1 });
       const fuse = this.add.graphics().setDepth(112); const t0 = this.time.now;
-      const ev = this.time.addEvent({ delay: 30, loop: true, callback: () => { const p = Math.max(0, 1 - (this.time.now - t0) / ALARM_MS); fuse.clear().fillStyle(0xffffff, 0.2).fillRoundedRect(W / 2 - 140, 222, 280, 10, 5).fillStyle(C.ouch, 1).fillRoundedRect(W / 2 - 140, 222, 280 * p, 10, 5); } });
+      const ev = this.time.addEvent({ delay: 30, loop: true, callback: () => { const p = Math.max(0, 1 - (this.time.now - t0) / alarmMs); fuse.clear().fillStyle(0xffffff, 0.2).fillRoundedRect(W / 2 - 140, 222, 280, 10, 5).fillStyle(C.ouch, 1).fillRoundedRect(W / 2 - 140, 222, 280 * p, 10, 5); } });
       this.alarmObjs = [red, sir, fuse, ev];
-      this.alarm.timer = this.time.delayedCall(ALARM_MS, () => this.endAlarm(id));
+      this.alarm.timer = this.time.delayedCall(alarmMs, () => this.endAlarm(id));
       return this.refresh();
     }
     this.runNight(id, id);
@@ -596,9 +596,9 @@ export class Play extends Phaser.Scene {
     setCount(0);
     const skip = pill(this, W - 70, 676, 64, 44, { icon: 'skip-forward', depth: 130, onClick: () => finish(true) });
     this.nightObjs = [dark, zz, cnt, skip];
-    if (this.sci.sensor && this.sensorObj) { this.nightEv.push(this.time.delayedCall(3300, () => { this.cameras.main.shake(900, 0.0035); SFX.hit(); this.tweens.add({ targets: this.sensorObj, scale: 1.5, duration: 160, yoyo: true, repeat: 3 }); })); }
+    if (this.sci.sensor && this.sensorObj) { this.nightEv.push(this.time.delayedCall(2200 + Math.random() * 3000, () => { this.cameras.main.shake(900, 0.0035); SFX.hit(); this.tweens.add({ targets: this.sensorObj, scale: 1.5, duration: 160, yoyo: true, repeat: 3 }); })); }
     if (f > 0) {
-      this.time.delayedCall(250, () => { SFX.flare(); this.cameras.main.flash(350, 255, 190, 110); this.tweens.add({ targets: this.sun, scale: this.sun.scale * 1.3, duration: 260, yoyo: true, repeat: 2 }); if (f >= 2) this.cameras.main.shake(900, 0.004); });
+      this.time.delayedCall(250 + Math.random() * 2200, () => { SFX.flare(); this.cameras.main.flash(350, 255, 190, 110); this.tweens.add({ targets: this.sun, scale: this.sun.scale * 1.3, duration: 260, yoyo: true, repeat: 2 }); if (f >= 2) this.cameras.main.shake(900, 0.004); });
     }
     // the rays: every ray that gets in is one beep, exactly res.units of them
     const rays: any[] = [];
@@ -646,13 +646,13 @@ export class Play extends Phaser.Scene {
 
   // ---------------------------------------------------------------- modals
   openModal(w: number, h: number, kind: string) {
-    this.closeModal(); this.modalKind = kind; this.hand.setVisible(false);
+    this.closeModal(); this.modalKind = kind; this.hand.setVisible(false); this.capTxt.setVisible(false); this.capBg.setVisible(false);
     const back = this.add.rectangle(W / 2, H / 2, W, H, 0x02030c, 0.66).setDepth(1000).setInteractive();
     const pn = panel(this, W / 2, H / 2, w, h); const c = this.add.container(W / 2, H / 2).setDepth(1002);
     c.setAlpha(0).setScale(0.96); this.tweens.add({ targets: c, alpha: 1, scale: 1, duration: 200 });
     this.modalObjs = [back, pn, c]; return c;
   }
-  closeModal() { this.modalObjs.forEach((o) => o.destroy()); this.modalObjs = []; if (this.modalKind) { this.modalKind = ''; if (this.scene.isActive()) this.refresh(); } }
+  closeModal() { this.modalObjs.forEach((o) => o.destroy()); this.modalObjs = []; this.capTxt?.setVisible(true); this.capBg?.setVisible(true); if (this.modalKind) { this.modalKind = ''; if (this.scene.isActive()) this.refresh(); } }
   okBtn(c: any, y: number, fn?: () => void, ico = 'check-circle', label = 'OK') {
     const b = pill(this, 0, y, 190, 58, { label, icon: ico, fill: C.sun, fillA: 1, stroke: 0xffe0a0, strokeA: 0.9, color: 0x1b1300, size: 24, onClick: () => { SFX.tap(); (fn || (() => this.closeModal()))(); } });
     c.add(b); return b;
@@ -701,14 +701,14 @@ export class Play extends Phaser.Scene {
   openJournal() {
     const S = this.S, c = this.openModal(1000, 580, 'journal');
     c.add(icon(this, 'notebook', -440, -246, 40, C.sun)); c.add(text(this, -410, -246, 'Journal', 34, '#ffd98a', 700, [0, 0.5]));
-    ids.forEach((id, i) => { const x = -170 + i * 290 + 70; c.add(text(this, x, -190, id + '  ' + NAMES[id], 22, '#cfd6f5', 600)); });
+    ids.forEach((id, i) => { const x = -330 + i * 280 + 90; c.add(text(this, x, -190, id + '  ' + NAMES[id], 22, '#cfd6f5', 600)); });
     const days = [...new Set(this.journal.map((j) => j.day))].sort() as number[];
     if (!days.length) c.add(text(this, 0, -20, 'Use Check to fill your journal.', 26, '#98a3d0', 400));
     days.forEach((day, di) => {
-      const y = -135 + di * 74; c.add(text(this, -440, y, 'Day ' + day, 22, '#98a3d0', 600, [0, 0.5]));
-      const line = this.add.graphics().lineStyle(1, 0xffffff, 0.12).lineBetween(-450, y + 36, 450, y + 36); c.add(line);
+      const rowH = Math.min(74, Math.floor(330 / Math.max(days.length, 1))), y = -135 + di * rowH; c.add(text(this, -440, y, 'Day ' + day, 22, '#98a3d0', 600, [0, 0.5]));
+      const line = this.add.graphics().lineStyle(1, 0xffffff, 0.12).lineBetween(-450, y + rowH / 2, 450, y + rowH / 2); c.add(line);
       ids.forEach((id, i) => {
-        let x = -240 + i * 290; const list = this.journal.filter((j) => j.day === day && j.room === id);
+        let x = -330 + i * 280; const list = this.journal.filter((j) => j.day === day && j.room === id);
         list.forEach((e) => {
           if (e.kind === 'beep' || e.kind === 'night') { c.add(icon(this, e.kind === 'beep' ? 'gauge' : 'moon-stars', x, y, 22, 0xaab4dc)); c.add(icon(this, FACE_ICON[e.face], x + 28, y, 28, FACE_COLOR[e.face])); c.add(text(this, x + 52, y + 1, String(e.units), 22, '#ffffff', 700, [0, 0.5])); x += 92; }
           else if (e.kind === 'seed') { c.add(icon(this, e.state === 'hurt' ? 'leaf' : 'plant', x + 8, y, 28, TRAY_TINT[e.state])); x += 44; }

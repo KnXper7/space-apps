@@ -52,7 +52,7 @@ def run(w,h,name,level='normal'):
             pg.screenshot(path=f'{OUT}/{name}-7-morning-{shot[0]}.png')
             ev(f"{P}.closeMorning()"); sl(.6)
         night(best); print('after n1',state())
-        for d in range(2,6):
+        for d in range(2,8):
             if ev(f"{P}.S.phase")!='day': break
             ev(f"{P}.useTool('plant')") if d==2 else None
             if d==2: ev(f"{P}.tapRoom('{best}')"); sl(.8)
@@ -70,7 +70,7 @@ def run(w,h,name,level='normal'):
                 if ev(f"{P}.S.power")>=1 and rid not in ev(f"Object.keys({P}.readings)"):
                     ev(f"{P}.useTool('beep')"); ev(f"{P}.tapRoom('{rid}')"); sl(.3)
             rd=ev(f"{P}.readings")
-            if d==3: ev(f"{P}.openJournal()"); sl(.8); pg.screenshot(path=f'{OUT}/{name}-8-journal.png'); ev(f"{P}.closeModal()")
+            if d in (3,7): ev(f"{P}.openJournal()"); sl(.8); pg.screenshot(path=f'{OUT}/{name}-8-journal{d}.png'); ev(f"{P}.closeModal()")
             safest=min(rd,key=lambda k:rd[k]['units']) if rd else best
             night(safest); print('after n',d,state())
         # report
