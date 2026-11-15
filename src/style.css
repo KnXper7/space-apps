@@ -5,7 +5,6 @@ html, body { margin: 0; height: 100%; background: #05081c; overflow: hidden; fon
 #game { position: fixed; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
 #game canvas { display: block; outline: none; }
 #rotate { display: none; position: fixed; inset: 0; z-index: 5; background: #05081c; align-items: center; justify-content: center; text-align: center; font-size: 1.3rem; padding: 2rem; }
-@media (orientation: portrait) and (max-width: 700px) { #rotate { display: flex; } }
 #overlay { position: fixed; inset: 0; z-index: 10; background: rgba(3, 5, 16, .82); display: flex; align-items: center; justify-content: center; padding: 16px; }
 #overlay[hidden] { display: none; }
 .sheet { width: min(760px, 100%); max-height: 100%; overflow: auto; background: #0e1432; border: 1px solid rgba(255,255,255,.14); border-radius: 22px; padding: 22px 26px 26px; line-height: 1.5; font-size: .95rem; }
