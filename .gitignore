@@ -1,7 +1,6 @@
 node_modules
-dist
-test/shots
+source/test/shots
 __pycache__
-
 .DS_Store
 _to_delete*/
+source/node_modules

@@ -1,23 +1,20 @@
 # Moon Detective: Night Shift
+NASA Space Apps 2026, Junior Astronaut Mission Trainer.
 
-A game for the NASA Space Apps 2026 challenge **Junior Astronaut Mission Trainer**.
-Keep a Moon crew safe from space radiation. Three rooms, one hidden dirt shield, five nights.
-Check the rooms, dig dirt onto the roof, sleep in the safest one, then work out where the shield was thinnest.
+## Play it
+Open `index.html` with Live Server (VS Code), or turn on GitHub Pages: Settings > Pages > Deploy from a branch > `main` > `/ (root)`.
+The root `index.html`, `assets/`, `icons/` and `img/` are the finished game. Do not edit them.
 
-The story is fictional. The rules map to real NASA and NOAA data: GOES proton flux, the September 2017 solar storm, and NASA's Foundation Surface Habitat layout. The in-game "For grown-ups" sheet lists every source and says what is simplified.
-
-Made by Koundinya. Code written with Claude (Anthropic).
-
-## Run it
+## Change it
+All code is in `source/`:
 ```
+cd source
 npm install
-npm run dev
+npm run dev      # live dev server while you edit
+npm run build    # rebuilds the game into the repo root
 ```
-`npm run build` makes the site in `dist/` (relative paths, works on GitHub Pages).
+Then commit and push.
 
-## Stack
-Vite, TypeScript, Phaser 3. Icons: Phosphor. Font: Lexend. Pictures: NASA.
-
-## Easy edits
-- `src/config.ts`: hand arrow (size, shadow, opacity, on/off), idle-hint time, help button, intro words and button labels, caption, game colors.
-- `src/style.css`: page styling. The Next/Skip bar and info sheet use CSS variables at the top of the last block (`--accent`, `--btn-radius`, ...).
+- `source/src/config.ts`: hand arrow, idle hint, intro words, caption, colors.
+- `source/src/style.css`: page styling (CSS variables at the top of the last block).
+- `source/src/crew.ts`: crew, jobs, finds. `source/src/data.js`: real NASA data and proof list.
